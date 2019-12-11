@@ -9,12 +9,19 @@ def main():
     program = list(map(int, raw_program.split(",")))
     print(program)
 
-    setup(program)
+    golden = list(program)
 
-    p = IntCode(program)
-    val = p.run()
-    print(val)
-    print(p._program)
+    for first in range(100):
+        for second in range(100):
+            program = list(golden)
+            program[1] = first
+            program[2] = second
+            value = IntCode(program).run()
+            print("Trying", (first, second), "got", value)
+
+            if value == 19690720:
+                print("Found it. Submit ", 100 * first + second)
+                return
 
 
 if __name__ == "__main__":
