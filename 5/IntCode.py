@@ -6,6 +6,8 @@ class IntCode:
         self._opcodes = {
             1: self.add,
             2: self.mult,
+            3: self.input,
+            4: self.output,
             99: self.halt
         }
 
@@ -15,10 +17,22 @@ class IntCode:
     def fetch(self, indirect):
         return self.value(self.value(indirect))
 
+
     def store(self, pos, value):
 
         self._program[pos] = value
         print("Stored", value, "to", pos, "=", self._program[pos])
+
+    def input(self):
+        PC = self._PC
+        take = input()
+        self.store(self.value(PC+1), take)
+        return PC+2
+
+    def output(self):
+        PC = self._PC
+        out = self.fetch(PC+1)
+        return PC+2
 
     def add(self):
         PC = self._PC
