@@ -10,6 +10,10 @@ opcode_names = {
     2: "mult",
     3: "input",
     4: "output",
+    5: "jump-if-true",
+    6: "jump-if-false",
+    7: "less than",
+    8: "equals",
     99: "halt",
 }
 
@@ -25,6 +29,10 @@ class IntCode:
             2: self.mult,
             3: self.input,
             4: self.output,
+            5: self.jump_if_true,
+            6: self.jump_if_false,
+            7: self.less_than,
+            8: self.equals,
             99: self.halt
         }
 
@@ -66,6 +74,36 @@ class IntCode:
         PC = self._PC
         product = self.read_argument(1) * self.read_argument(2)
         self.store_argument(3, product)
+        return PC + 4
+
+    def jump_if_true(self):
+        PC = self._PC
+        if self.read_argument(1):  # "if the first parameter is non-zero,"
+            return self.read_argument(2)
+        else:
+            return PC + 3
+
+    def jump_if_false(self):
+        PC = self._PC
+        if not self.read_argument(1):  # "if the first parameter is zero,"
+            return self.read_argument(2)
+        else:
+            return PC + 3
+
+    def less_than(self):
+        PC = self._PC
+        if self.read_argument(1) < self.read_argument(2):  # "if the first parameter is less than the second parameter"
+            self.store_argument(3, 1)
+        else:
+            self.store_argument(3, 0)
+        return PC + 4
+
+    def equals(self):
+        PC = self._PC
+        if self.read_argument(1) == self.read_argument(2):  # "if the first parameter is equal to the second parameter"
+            self.store_argument(3, 1)
+        else:
+            self.store_argument(3, 0)
         return PC + 4
 
     def halt(self):
