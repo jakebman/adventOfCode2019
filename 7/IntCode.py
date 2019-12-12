@@ -21,7 +21,7 @@ opcode_names = {
 class IntCode:
     def __init__(self, program):
         self._arg_mode = defaultdict(int)
-        self._program = program
+        self._program = list(program)
         self._PC = 0
 
         self._opcodes = {
