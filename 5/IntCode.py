@@ -1,6 +1,17 @@
 from collections import defaultdict
 
-debug = print
+
+def debug(*args):
+    print("\t", *args)
+
+
+opcode_names = {
+    1: "add",
+    2: "mult",
+    3: "input",
+    4: "output",
+    99: "halt",
+}
 
 
 class IntCode:
@@ -31,13 +42,14 @@ class IntCode:
 
     def input(self):
         PC = self._PC
-        take = input()
+        take = int(input())
         self.store_argument(1, take)
         return PC + 2
 
     def output(self):
         PC = self._PC
-        out = self.fetch(PC + 1)
+        out = self.read_argument(1)
+        print(out)
         return PC + 2
 
     def add(self):
@@ -69,20 +81,25 @@ class IntCode:
         """ argument positions start at 1 (the opcode is value 0)"""
         mode = self._arg_mode[arg_pos]
 
-        return {
+        result = {
             0: self.fetch,  # position mode (could be "direct addressing", or 'indirect value')
             1: self.value,  # immediate mode -- just read the value at the position
         }[mode](self._PC + arg_pos)
 
+        return result
+
     def dispatch(self):
         opcode = self.value(self._PC)  # TODO: read_argument(0), maybe?
         modes = opcode // 100
-        mode_pos = 0
+        opcode %= 100
+
+        debug("PC={}, op={}, modes={}".format(self._PC, opcode_names[opcode], str(modes)[::-1]))
 
         self._arg_mode = defaultdict(int)
+        mode_pos = 0
         while modes:
             mode_pos += 1
             self._arg_mode[mode_pos] = modes % 10
             modes //= 10
 
-        return self._opcodes[opcode % 100]
+        return self._opcodes[opcode]
