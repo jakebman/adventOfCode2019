@@ -19,10 +19,13 @@ opcode_names = {
 
 
 class IntCode:
-    def __init__(self, program):
+    def __init__(self, program, input=input, output=print, name="unnamed"):
         self._arg_mode = defaultdict(int)
         self._program = list(program)
         self._PC = 0
+        self._input = input
+        self._output = output
+        self._name = name
 
         self._opcodes = {
             1: self.add,
@@ -50,14 +53,14 @@ class IntCode:
 
     def input(self):
         PC = self._PC
-        take = int(input())
+        take = int(self._input(self._name + "<prompt>"))
         self.store_argument(1, take)
         return PC + 2
 
     def output(self):
         PC = self._PC
         out = self.read_argument(1)
-        print(out)
+        self._output(out)
         return PC + 2
 
     def add(self):
