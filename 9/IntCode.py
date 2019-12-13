@@ -17,6 +17,7 @@ opcode_names = {
     6: "jump-if-false",
     7: "less than",
     8: "equals",
+    9: "relative-base",
     99: "halt",
 }
 
@@ -24,11 +25,12 @@ opcode_names = {
 class IntCode:
     def __init__(self, program, input=input, output=print, name="unnamed"):
         self._arg_mode = defaultdict(int)
-        self._program = list(program)
+        self._program = defaultdict(int, enumerate(program))  # flexible ram
         self._PC = 0
         self._input = input
         self._output = output
         self._name = name
+        self._relative_base = 0
 
         self._opcodes = {
             1: self.add,
@@ -39,6 +41,7 @@ class IntCode:
             6: self.jump_if_false,
             7: self.less_than,
             8: self.equals,
+            9: self.relative_base,
             99: self.halt
         }
 
@@ -49,6 +52,11 @@ class IntCode:
     def fetch(self, indirect):
         """Retrieve the value of a memory address named from this given memory address (an indirect/pointer thing)"""
         return self.value(self.value(indirect))
+
+    def fetch_offest(self, indirect):
+        """Retrieve the value of a memory address named from this given memory address, offset by the current
+        relative base """
+        return self.value(self.value(indirect) + self._relative_base)
 
     def store(self, pos, value):
         was = self._program[pos]
@@ -74,9 +82,13 @@ class IntCode:
         self.store_argument(3, sum)
         return PC + 4
 
-    def store_argument(self, arg, sum):
+    def store_argument(self, arg, value):
         """Like in read_argument, arg positions start at 1 (arg 0 is the opcode)"""
-        self.store(self.value(self._PC + arg), sum)
+
+        pos = self.value(self._PC + arg)
+        if self._arg_mode[arg] == 2:  # Quick and dirty solution for arg modes. Refactor this if we need another.
+            pos += self._relative_base
+        self.store(pos, value)
 
     def mult(self):
         PC = self._PC
@@ -114,6 +126,11 @@ class IntCode:
             self.store_argument(3, 0)
         return PC + 4
 
+    def relative_base(self):
+        PC = self._PC
+        self._relative_base += self.read_argument(1)
+        return PC + 2
+
     def halt(self):
         return -1
 
@@ -130,6 +147,7 @@ class IntCode:
         result = {
             0: self.fetch,  # position mode (could be "direct addressing", or 'indirect value')
             1: self.value,  # immediate mode -- just read the value at the position
+            2: self.fetch_offest,  # relative mode - position mode, but offset the pointer by the relative base register
         }[mode](self._PC + arg_pos)
 
         return result
