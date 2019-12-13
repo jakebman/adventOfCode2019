@@ -1,8 +1,11 @@
 from collections import defaultdict
 
+debug = lambda *args: print("\t", *args, flush=True)
 
-def debug(*args):
-    print("\t", *args)
+
+def setDebugStream(newDebug):
+    global debug
+    debug = newDebug
 
 
 opcode_names = {
@@ -48,12 +51,14 @@ class IntCode:
         return self.value(self.value(indirect))
 
     def store(self, pos, value):
+        was = self._program[pos]
         self._program[pos] = value
-        debug("Stored", value, "to", pos, "=", self._program[pos])
+        debug(self._name, "Stored", value, "to", pos, "=", self._program[pos], "was", was)
 
     def input(self):
         PC = self._PC
         take = int(self._input(self._name + "<prompt>"))
+        debug(self._name, "Got", take, "from input")
         self.store_argument(1, take)
         return PC + 2
 
@@ -134,7 +139,7 @@ class IntCode:
         modes = opcode // 100
         opcode %= 100
 
-        debug("PC={}, op={}, modes={}".format(self._PC, opcode_names[opcode], str(modes)[::-1]))
+        debug("{}:{} PC={}, modes={}".format(self._name, opcode_names[opcode], self._PC, str(modes)[::-1]))
 
         self._arg_mode = defaultdict(int)
         mode_pos = 0
