@@ -1,12 +1,11 @@
 from collections import namedtuple, defaultdict
-from math import copysign
-from fractions import gcd
+from math import copysign, gcd
 from pprint import pprint
 from fractions import Fraction
 
 
 def signum(x):
-    return copysign(1, x)
+    return int(copysign(1, x))
 
 
 point = namedtuple("point", "column row")  # TODO: order can get verrry confusing, but this is the order in the Q.
@@ -26,8 +25,8 @@ def rectify(dc, dr):
     if dr == 0:
         dc = signum(dc)
     g = gcd(dc, dr)
-    dc /= g
-    dr /= g
+    dc //= g
+    dr //= g
     return vector(dc, dr)
 
 
