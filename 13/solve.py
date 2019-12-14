@@ -1,28 +1,27 @@
 from itertools import permutations
 from pprint import pprint
 from threading import Thread
-from collections import defaultdict, namedtuple
+from collections import defaultdict, namedtuple, Counter
 
 from IntCode import IntCode, setDebugStream
 
 from queue import Queue, Empty
 
 point = namedtuple("point", "row column")
-UP = point(-1, 0)
-DOWN = point(1, 0)
-LEFT = point(0, -1)
-RIGHT = point(0, 1)
-CLOCKWISE = {
-    UP: RIGHT,
-    RIGHT: DOWN,
-    DOWN: LEFT,
-    LEFT: UP,
+
+DISPLAY = {
+    0: " ",
+    1: "|",
+    2: "#",
+    3: "_",
+    4: "o",
 }
-COUNTERCLOCKWISE = {
-    UP: LEFT,
-    LEFT: DOWN,
-    DOWN: RIGHT,
-    RIGHT: UP,
+DESCRIBE = {
+    0: "empty",
+    1: "wall",
+    2: "block",
+    3: "paddle",
+    4: "ball",
 }
 
 
@@ -37,15 +36,19 @@ def main():
 
     debug = Queue()
     setDebugStream(lambda *args: debug.put(args))
-    Thread(name="Debug Printer", target=debugPrinter, args=[debug]).start()
+    debugThread = Thread(name="Debug Printer", target=debugPrinter, args=[debug], daemon=True)
+    debugThread.start()
 
     queries = Queue()
     commands = Queue()
-    a = IntCode(program, name="control", input=queries.get, output=commands.put)
+    a = IntCode(program, name="game", input=queries.get, output=commands.put)
     control = a.run_as_thread()
-    field = {point(0, 0): 1}
-    Thread(name="hull painter", target=hullPainter, args=(queries, commands, field)).start()
+
+    painter = Thread(name="game painter", target=gamePainter, args=(queries, commands))
+    painter.start()
+
     control.join()
+    painter.join()
 
 
 def showField(field):
@@ -58,11 +61,10 @@ def showField(field):
         row, col = p
         row -= upperLeft.row
         col -= upperLeft.column
-        print(row, col)
-        if field[p]:
-            grid[row][col] = "@"
+        grid[row][col] = DISPLAY[field[p]]
     for row in grid:
         print("".join(row))
+
 
 def query(p, field):
     if p in field:
@@ -70,27 +72,28 @@ def query(p, field):
     return 0
 
 
-def hullPainter(queries, commands, field):
+def gamePainter(queries, commands):
+    field = defaultdict(int)
     position = point(0, 0)
-    direction = UP
     while True:
         queries.put(query(position, field))
         try:
-            paint = commands.get(timeout=3)
-            turnRight = commands.get(timeout=3)
-            field[position] = paint
-            if turnRight:
-                direction = CLOCKWISE[direction]
-            else:
-                direction = COUNTERCLOCKWISE[direction]
-            position = point(position.row + direction.row, position.column + direction.column)
+            col = commands.get(timeout=3)
+            row = commands.get(timeout=3)
+            tileId = commands.get(timeout=3)
+            field[point(row, col)] = tileId
         except Empty:
             print("Done painting")
             break
 
     pprint(field)
-    print(len(field))
     showField(field)
+
+    summary = Counter(field.values())
+    describe = {DESCRIBE[key]: value for key, value in summary.items()}
+    for tile, count in describe.items():
+        print("There are", count, tile, "tiles")
+    print(len(list(tile for tile in field.values() if tile)), "visible tiles")
 
 
 if __name__ == "__main__":
