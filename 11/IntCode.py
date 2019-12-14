@@ -1,4 +1,5 @@
 from collections import defaultdict
+from threading import Thread
 
 debug = lambda *args: print("\t", *args, flush=True)
 
@@ -139,6 +140,16 @@ class IntCode:
             self._PC = self.dispatch()()
 
         return self._program[0]
+
+    def run_as_thread(self, input=None, output=None):
+        if input:
+            self._input = input
+        if output:
+            self._output = output
+        thread = Thread(name=self._name, target=self.run)
+        thread.start()
+
+        return thread
 
     def read_argument(self, arg_pos):
         """ argument positions start at 1 (the opcode is value 0)"""
