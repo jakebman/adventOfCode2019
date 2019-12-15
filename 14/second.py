@@ -74,9 +74,7 @@ def produce(recipes, chemical, spare=None, initial_guess=1):
 
     while initial_guess > 0:
         success, spare = try_generate(recipes, chemical, initial_guess, spare)
-        exit()
         if not success:
-            exit()
             initial_guess //= 2
 
     return spare
@@ -98,9 +96,10 @@ def try_generate(recipes, chemical, qty, spare):
         if needed <= 0:
             # no need to produce this chemical
             print("Have enough", chem, (need[chem], spare[chem]))
-            if chem != "ORE":
-                exit()
             continue
+        elif chem == "ORE":
+            success = False
+            return success, spare
         yields = recipes[chem]['yields']
         multiplier = ceil(needed / yields)
 
