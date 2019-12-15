@@ -48,7 +48,7 @@ def topo_cmp(recipes, a, b):
         return -1
     elif b in recipes[a]['direct'] or b in recipes[a]['transitive']:
         return 1
-    return 0
+    return len(recipes[a]['transitive']) - len(recipes[b]['transitive'])
 
 
 def topo_list(recipes, chemical):
