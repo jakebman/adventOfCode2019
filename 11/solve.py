@@ -37,7 +37,7 @@ def main():
 
     debug = Queue()
     setDebugStream(lambda *args: debug.put(args))
-    Thread(name="Debug Printer", target=debugPrinter, args=[debug]).start()
+    Thread(name="Debug Printer", target=debugPrinter, args=[debug], daemon=True).start()
 
     queries = Queue()
     commands = Queue()
