@@ -107,7 +107,9 @@ def main():
     print(recipes["FUEL"])
     print(topo_list(recipes, "ORE"))
     print(topo_list(recipes, "FUEL"))
-    pprint(produce(recipes, "FUEL", 1))
+    need, filled = produce(recipes, "FUEL", 1)
+    pprint((need, filled))
+    print("Used", filled['ORE'], "ORE to create", 1, "FUEL")
 
 
 if __name__ == "__main__":

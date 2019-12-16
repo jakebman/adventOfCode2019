@@ -152,7 +152,9 @@ def main():
     print(topo_list(recipes, "ORE"))
     print(topo_list(recipes, "FUEL"))
     ORE_QTY = 1_000_000_000_000
-    pprint(produce(recipes, "FUEL", spare={"ORE": ORE_QTY}, initial_guess=ORE_QTY // 143173))
+    spare = produce(recipes, "FUEL", spare={"ORE": ORE_QTY}, initial_guess=ORE_QTY // 143173)
+    pprint({chem: qty for chem, qty in spare.items() if qty})
+    print("Produced", spare['FUEL'], "FUEL")
 
 
 if __name__ == "__main__":
